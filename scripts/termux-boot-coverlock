@@ -1,0 +1,15 @@
+#!/data/data/com.termux/files/usr/bin/sh
+# Termux boot script (~/.termux/boot/coverlock).
+# Waits for Shizuku, then starts coverlock.sh as the shell user through rish.
+rish() {
+  RISH_APPLICATION_ID=com.termux /system/bin/app_process \
+    -Djava.class.path=$HOME/.rish/rish_shizuku.dex /system/bin \
+    --nice-name=rish rikka.shizuku.shell.ShizukuShellLoader "$@"
+}
+for i in $(seq 1 180); do
+  if rish -c 'id' 2>/dev/null | grep -q "uid=2000"; then
+    rish -c 'ps -A -o ARGS | grep -q "^sh /data/local/tmp/coverlock.sh" || (nohup setsid sh /data/local/tmp/coverlock.sh </dev/null >/dev/null 2>&1 &)'
+    exit 0
+  fi
+  sleep 5
+done
